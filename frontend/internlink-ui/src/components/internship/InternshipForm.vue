@@ -32,9 +32,9 @@
 
     <div class="mt-4 flex gap-2">
 
-      <button @click="submitForm"
-        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow">
-        {{ editData ? "Update" : "Submit" }}
+      <button @click="submitForm" :disabled="isLoading"
+        class="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded shadow">
+        {{ isLoading ? 'Saving...' : (editData ? "Update" : "Submit") }}
       </button>
 
       <button v-if="editData" @click="cancelEdit"
@@ -44,16 +44,23 @@
 
     </div>
 
+    <div v-if="error" class="mt-2 text-red-600 text-sm">
+      {{ error }}
+    </div>
+
   </div>
 </template>
 
 
 <script setup>
-import { reactive, watch } from 'vue'
+import { reactive, watch, ref } from 'vue'
 import axios from 'axios'
 
 const props = defineProps(['editData'])
 const emit = defineEmits(['refresh', 'clearEdit'])
+
+const isLoading = ref(false)
+const error = ref('')
 
 const form = reactive({
   title: '',
@@ -69,27 +76,61 @@ watch(() => props.editData, (val) => {
   }
 })
 
-const submitForm = async () => {
-  if (props.editData) {
-    await axios.put(
-      `http://localhost:5000/internships/${props.editData.id}`,
-      form
-    )
-    emit('clearEdit')
-  } else {
-    await axios.post('http://localhost:5000/internships', form)
+const validateForm = () => {
+  if (!form.title.trim()) {
+    error.value = 'Title is required'
+    return false
   }
+  if (!form.category.trim()) {
+    error.value = 'Category is required'
+    return false
+  }
+  if (!form.deadline) {
+    error.value = 'Deadline is required'
+    return false
+  }
+  const deadlineDate = new Date(form.deadline)
+  if (deadlineDate <= new Date()) {
+    error.value = 'Deadline must be in the future'
+    return false
+  }
+  error.value = ''
+  return true
+}
 
-  emit('refresh')
+const submitForm = async () => {
+  if (!validateForm()) return
 
-  form.title = ''
-  form.description = ''
-  form.category = ''
-  form.deadline = ''
+  isLoading.value = true
+  try {
+    if (props.editData) {
+      await axios.put(
+        `http://localhost:5000/internships/${props.editData.id}`,
+        form
+      )
+      emit('clearEdit')
+    } else {
+      await axios.post('http://localhost:5000/internships', form)
+    }
+
+    emit('refresh')
+
+    // Reset form only for new entries
+    if (!props.editData) {
+      form.title = ''
+      form.description = ''
+      form.category = ''
+      form.deadline = ''
+    }
+  } catch (err) {
+    error.value = err.response?.data?.message || err.response?.data?.error || 'An error occurred'
+  } finally {
+    isLoading.value = false
+  }
 }
 
 const cancelEdit = () => {
   emit('clearEdit')
+  error.value = ''
 }
-
 </script>

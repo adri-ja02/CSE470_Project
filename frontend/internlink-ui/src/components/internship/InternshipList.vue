@@ -30,9 +30,9 @@
               Edit
             </button>
 
-            <button @click="deleteItem(i.id)"
-              class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded shadow">
-              Delete
+            <button @click="deleteItem(i.id)" :disabled="isDeleting === i.id"
+              class="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white px-3 py-1 rounded shadow">
+              {{ isDeleting === i.id ? 'Deleting...' : 'Delete' }}
             </button>
 
           </td>
@@ -47,13 +47,30 @@
 
 
 <script setup>
+import { ref } from 'vue'
 import axios from 'axios'
 
 const props = defineProps(['internships'])
-const emit = defineEmits(['refresh'])
+const emit = defineEmits(['refresh', 'edit'])
+
+const isDeleting = ref(null)
 
 const deleteItem = async (id) => {
-  await axios.delete(`http://localhost:5000/internships/${id}`)
-  emit('refresh')
+  if (confirm('Are you sure you want to delete this internship?')) {
+    isDeleting.value = id
+    try {
+      await axios.delete(`http://localhost:5000/internships/${id}`)
+      emit('refresh')
+    } catch (error) {
+      console.error('Error deleting internship:', error)
+      alert('Failed to delete internship')
+    } finally {
+      isDeleting.value = null
+    }
+  }
+}
+
+const editItem = (internship) => {
+  emit('edit', internship)
 }
 </script>

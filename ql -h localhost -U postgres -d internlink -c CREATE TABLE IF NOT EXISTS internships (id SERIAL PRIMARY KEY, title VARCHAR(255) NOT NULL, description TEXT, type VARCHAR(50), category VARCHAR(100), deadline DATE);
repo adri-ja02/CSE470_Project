@@ -1,0 +1,10 @@
+                                     Table "public.internships"
+  Column  |          Type          | Collation | Nullable |                 Default                 
+----------+------------------------+-----------+----------+-----------------------------------------
+ id       | integer                |           | not null | nextval('internships_id_seq'::regclass)
+ title    | character varying(255) |           |          | 
+ company  | character varying(255) |           |          | 
+ deadline | date                   |           |          | 
+Indexes:
+    "internships_pkey" PRIMARY KEY, btree (id)
+
