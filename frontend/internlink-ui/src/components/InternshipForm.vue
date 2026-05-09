@@ -10,6 +10,8 @@
       <input v-model="form.title" placeholder="Title"
         class="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-400" />
 
+      <input v-model="form.company" placeholder="Company"
+        class="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-400" />
 
       <input v-model="form.category" placeholder="Category"
         class="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-400" />
@@ -44,52 +46,105 @@
 
     </div>
 
-  </div>
+    <div v-if="error" class="mt-3 text-red-600 text-sm">
+      {{ error }}
+    </div>
+
+</div>
 </template>
 
-
 <script setup>
-import { reactive, watch } from 'vue'
+import { reactive, watch, ref } from 'vue'
 import axios from 'axios'
 
 const props = defineProps(['editData'])
 const emit = defineEmits(['refresh', 'clearEdit'])
 
+const error = ref('')
 const form = reactive({
   title: '',
   description: '',
   type: 'Remote',
   category: '',
-  deadline: ''
+  deadline: '',
+  company: ''
 })
 
 watch(() => props.editData, (val) => {
   if (val) {
     Object.assign(form, val)
+  } else {
+    form.title = ''
+    form.description = ''
+    form.type = 'Remote'
+    form.category = ''
+    form.deadline = ''
+    form.company = ''
+    error.value = ''
   }
 })
 
-const submitForm = async () => {
-  if (props.editData) {
-    await axios.put(
-      `http://localhost:5000/internships/${props.editData.id}`,
-      form
-    )
-    emit('clearEdit')
-  } else {
-    await axios.post('http://localhost:5000/internships', form)
+const validateForm = () => {
+  if (!form.title.trim()) {
+    error.value = 'Title is required'
+    return false
   }
+  if (!form.company.trim()) {
+    error.value = 'Company is required'
+    return false
+  }
+  if (!form.category.trim()) {
+    error.value = 'Category is required'
+    return false
+  }
+  if (!form.deadline) {
+    error.value = 'Deadline is required'
+    return false
+  }
+  const deadlineDate = new Date(form.deadline)
+  if (isNaN(deadlineDate.getTime())) {
+    error.value = 'Deadline format is invalid'
+    return false
+  }
+  if (deadlineDate <= new Date()) {
+    error.value = 'Deadline must be in the future'
+    return false
+  }
+  error.value = ''
+  return true
+}
 
-  emit('refresh')
+const submitForm = async () => {
+  if (!validateForm()) return
 
-  form.title = ''
-  form.description = ''
-  form.category = ''
-  form.deadline = ''
+  try {
+    if (props.editData) {
+      await axios.put(
+        `http://localhost:5000/internships/${props.editData.id}`,
+        form
+      )
+      emit('clearEdit')
+    } else {
+      await axios.post('http://localhost:5000/internships', form)
+    }
+
+    emit('refresh')
+
+    if (!props.editData) {
+      form.title = ''
+      form.description = ''
+      form.type = 'Remote'
+      form.category = ''
+      form.deadline = ''
+      form.company = ''
+    }
+  } catch (err) {
+    error.value = err.response?.data?.message || err.response?.data?.error || 'An error occurred'
+  }
 }
 
 const cancelEdit = () => {
   emit('clearEdit')
+  error.value = ''
 }
-
 </script>

@@ -9,7 +9,16 @@ const addInternship = async (req, res) => {
             return res.status(400).json({ message: "Title is required" });
         }
 
-        if (new Date(deadline) < new Date()) {
+        if (!deadline) {
+            return res.status(400).json({ message: "Deadline is required" });
+        }
+
+        const deadlineDate = new Date(deadline);
+        if (isNaN(deadlineDate.getTime())) {
+            return res.status(400).json({ message: "Invalid deadline format" });
+        }
+
+        if (deadlineDate <= new Date()) {
             return res.status(400).json({ message: "Deadline must be future date" });
         }
 
@@ -17,6 +26,7 @@ const addInternship = async (req, res) => {
         res.json(internship);
 
     } catch (err) {
+        console.error('Error creating internship:', err);
         res.status(500).json({ error: err.message });
     }
 };
@@ -34,10 +44,30 @@ const getInternships = async (req, res) => {
 // UPDATE
 const editInternship = async (req, res) => {
     try {
+        const { title, deadline } = req.body;
+
+        if (!title) {
+            return res.status(400).json({ message: "Title is required" });
+        }
+
+        if (!deadline) {
+            return res.status(400).json({ message: "Deadline is required" });
+        }
+
+        const deadlineDate = new Date(deadline);
+        if (isNaN(deadlineDate.getTime())) {
+            return res.status(400).json({ message: "Invalid deadline format" });
+        }
+
+        if (deadlineDate <= new Date()) {
+            return res.status(400).json({ message: "Deadline must be future date" });
+        }
+
         const id = req.params.id;
         const updated = await internshipModel.updateInternship(id, req.body);
         res.json(updated);
     } catch (err) {
+        console.error('Error updating internship:', err);
         res.status(500).json({ error: err.message });
     }
 };

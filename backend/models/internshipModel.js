@@ -2,13 +2,13 @@ const pool = require('../config/db');
 
 // CREATE
 const createInternship = async (data) => {
-    const { title, description, type, category, deadline } = data;
+    const { title, description, type, category, deadline, company } = data;
 
     const result = await pool.query(
-        `INSERT INTO internships (title, description, type, category, deadline)
-         VALUES ($1, $2, $3, $4, $5)
+        `INSERT INTO internships (title, description, type, category, deadline, company)
+         VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING *`,
-        [title, description, type, category, deadline]
+        [title, description, type, category, deadline, company]
     );
 
     return result.rows[0];
@@ -22,14 +22,14 @@ const getAllInternships = async () => {
 
 // UPDATE
 const updateInternship = async (id, data) => {
-    const { title, description, type, category, deadline } = data;
+    const { title, description, type, category, deadline, company } = data;
 
     const result = await pool.query(
         `UPDATE internships
-         SET title=$1, description=$2, type=$3, category=$4, deadline=$5
-         WHERE id=$6
+         SET title=$1, description=$2, type=$3, category=$4, deadline=$5, company=$6
+         WHERE id=$7
          RETURNING *`,
-        [title, description, type, category, deadline, id]
+        [title, description, type, category, deadline, company, id]
     );
 
     return result.rows[0];

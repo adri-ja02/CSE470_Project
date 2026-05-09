@@ -12,7 +12,7 @@
         <!-- Header -->
         <div class="backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-6 mb-6">
           <h1 class="text-3xl font-bold">InternLink Admin Panel</h1>
-          <p>Internship Posting Module (Sprint-1)</p>
+          <p>Internship Posting Module with Reporting & Analytics</p>
         </div>
 
         <!-- Form -->
@@ -29,6 +29,8 @@
           @edit="setEditData"
         />
 
+        <AnalyticsDashboard />
+
       </div>
 
     </div>
@@ -42,6 +44,7 @@ import axios from 'axios'
 
 import InternshipForm from './components/InternshipForm.vue'
 import InternshipList from './components/InternshipList.vue'
+import AnalyticsDashboard from './components/AnalyticsDashboard.vue'
 import ParticlesBackground from './components/ParticlesBackground.vue' // ✅ correct place
 
 const internships = ref([])

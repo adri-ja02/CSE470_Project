@@ -7,6 +7,7 @@
       <thead class="bg-slate-100">
         <tr>
           <th class="p-2">Title</th>
+          <th class="p-2">Company</th>
           <th class="p-2">Type</th>
           <th class="p-2">Category</th>
           <th class="p-2">Deadline</th>
@@ -19,6 +20,7 @@
           class="border-t text-center hover:bg-slate-50">
 
           <td class="p-3">{{ i.title }}</td>
+          <td class="p-3">{{ i.company || '—' }}</td>
           <td class="p-3">{{ i.type }}</td>
           <td class="p-3">{{ i.category }}</td>
           <td class="p-3">{{ i.deadline }}</td>
@@ -50,10 +52,15 @@
 import axios from 'axios'
 
 const props = defineProps(['internships'])
-const emit = defineEmits(['refresh'])
+const emit = defineEmits(['refresh', 'edit'])
 
 const deleteItem = async (id) => {
+  if (!confirm('Are you sure you want to delete this internship?')) return
   await axios.delete(`http://localhost:5000/internships/${id}`)
   emit('refresh')
+}
+
+const editItem = (internship) => {
+  emit('edit', internship)
 }
 </script>
