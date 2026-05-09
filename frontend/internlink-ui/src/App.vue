@@ -29,6 +29,10 @@
           @edit="setEditData"
         />
 
+        <ApplicationForm :internships="internships" @refreshApplications="fetchApplications" />
+
+        <ApplicationHistory :applications="applications" />
+
         <AnalyticsDashboard />
 
       </div>
@@ -44,15 +48,23 @@ import axios from 'axios'
 
 import InternshipForm from './components/InternshipForm.vue'
 import InternshipList from './components/InternshipList.vue'
+import ApplicationForm from './components/ApplicationForm.vue'
+import ApplicationHistory from './components/ApplicationHistory.vue'
 import AnalyticsDashboard from './components/AnalyticsDashboard.vue'
 import ParticlesBackground from './components/ParticlesBackground.vue' // ✅ correct place
 
 const internships = ref([])
+const applications = ref([])
 const editData = ref(null)
 
 const fetchInternships = async () => {
   const res = await axios.get('http://localhost:5000/internships')
   internships.value = res.data
+}
+
+const fetchApplications = async () => {
+  const res = await axios.get('http://localhost:5000/applications')
+  applications.value = res.data
 }
 
 const setEditData = (data) => {
@@ -63,5 +75,8 @@ const clearEdit = () => {
   editData.value = null
 }
 
-onMounted(fetchInternships)
+onMounted(() => {
+  fetchInternships()
+  fetchApplications()
+})
 </script>
