@@ -22,6 +22,13 @@
           Internships
         </router-link>
 
+        <router-link 
+          to="/applications"
+          class="hover:text-white transition"
+        >
+          Applications
+        </router-link>
+
       </div>
 
     </div>
