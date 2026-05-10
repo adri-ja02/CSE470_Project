@@ -3,6 +3,7 @@ const cors = require('cors');
 const pool = require('./config/db');
 
 const internshipRoutes = require('./routes/internshipRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 
@@ -30,6 +31,33 @@ const initDB = async () => {
         await pool.query(`ALTER TABLE internships ADD COLUMN IF NOT EXISTS category VARCHAR(100)`);
         await pool.query(`ALTER TABLE internships ADD COLUMN IF NOT EXISTS deadline DATE`);
 
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(120) NOT NULL,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'company', 'student')),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                token_hash TEXT NOT NULL,
+                expires_at TIMESTAMP NOT NULL,
+                used_at TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        await pool.query(`
+            CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_hash
+            ON password_reset_tokens(token_hash)
+        `);
+
         console.log('Database initialized');
     } catch (err) {
         console.error('Database initialization error:', err);
@@ -37,6 +65,7 @@ const initDB = async () => {
 };
 
 // USE ROUTES
+app.use('/api/auth', authRoutes);
 app.use('/', internshipRoutes);
 
 app.listen(5000, async () => {
